@@ -14,6 +14,26 @@ from app.schemas.pond import PondCreate, PondUpdate, PondOut
 router = APIRouter(prefix="/api/ponds", tags=["ponds"])
 
 
+def _to_out(p: Pond) -> PondOut:
+    # hatchery may be missing for legacy orphaned rows (FK SET NULL);
+    # degrade to a placeholder instead of failing the whole list.
+    if p.hatchery is not None and p.hatchery.name:
+        hatchery_name = p.hatchery.name
+    elif p.hatchery_id is not None:
+        hatchery_name = f"已删除育苗场 #{p.hatchery_id}"
+    else:
+        hatchery_name = "未分配育苗场"
+    return PondOut(
+        id=p.id,
+        hatchery_id=p.hatchery_id,
+        pond_code=p.pond_code,
+        species=p.species,
+        volume_m3=p.volume_m3,
+        status=p.status,
+        hatchery_name=hatchery_name,
+    )
+
+
 @router.get("", response_model=List[PondOut])
 def list_ponds(
     hatchery_id: Optional[int] = Query(None, alias="hatcheryId"),
@@ -24,22 +44,7 @@ def list_ponds(
     if hatchery_id is not None:
         q = q.filter(Pond.hatchery_id == hatchery_id)
     rows = q.order_by(Pond.id).all()
-    out = []
-    for p in rows:
-        # bare access — blows up when hatchery was SET NULL orphaned
-        name = p.hatchery.name
-        out.append(
-            PondOut(
-                id=p.id,
-                hatchery_id=p.hatchery_id,
-                pond_code=p.pond_code,
-                species=p.species,
-                volume_m3=p.volume_m3,
-                status=p.status,
-                hatchery_name=name,
-            )
-        )
-    return out
+    return [_to_out(p) for p in rows]
 
 
 @router.post("", response_model=PondOut, status_code=status.HTTP_201_CREATED)
@@ -77,7 +82,7 @@ def get_pond(
     item = db.query(Pond).filter(Pond.id == pond_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="塘口不存在")
-    return item
+    return _to_out(item)
 
 
 @router.put("/{pond_id}", response_model=PondOut)

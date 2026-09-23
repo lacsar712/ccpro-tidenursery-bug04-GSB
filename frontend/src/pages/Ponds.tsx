@@ -57,8 +57,18 @@ export default function Ponds() {
     }
   }
 
-  const hatcheryName = (id: number) =>
-    hatcheries.find((h) => h.id === id)?.name || `#${id}`
+  const hatcheryLabel = (p: Pond) => {
+    const live =
+      p.hatcheryId != null
+        ? hatcheries.find((h) => h.id === p.hatcheryId)?.name
+        : undefined
+    // Prefer the live name; fall back to backend's degraded label, then to a placeholder.
+    return (
+      live ||
+      p.hatcheryName ||
+      (p.hatcheryId != null ? `已删除育苗场 #${p.hatcheryId}` : '未分配育苗场')
+    )
+  }
 
   return (
     <div>
@@ -145,7 +155,7 @@ export default function Ponds() {
             {rows.map((r) => (
               <tr key={r.id}>
                 <td>{r.id}</td>
-                <td>{hatcheryName(r.hatcheryId)}</td>
+                <td>{hatcheryLabel(r)}</td>
                 <td>{r.pondCode}</td>
                 <td>{r.species}</td>
                 <td>{r.volumeM3}</td>

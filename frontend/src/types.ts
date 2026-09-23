@@ -14,11 +14,12 @@ export type Hatchery = {
 
 export type Pond = {
   id: number
-  hatcheryId: number
+  hatcheryId: number | null
   pondCode: string
   species: string
   volumeM3: number
   status: 'stocked' | 'dry' | 'quarantine'
+  hatcheryName?: string
 }
 
 export type WaterSample = {

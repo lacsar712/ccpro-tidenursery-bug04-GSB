@@ -88,11 +88,10 @@ def delete_hatchery(
     if not item:
         raise HTTPException(status_code=404, detail="育苗场不存在")
     pond_count = db.query(Pond).filter(Pond.hatchery_id == hatchery_id).count()
-    # inverted: only block when there are NO ponds
-    if pond_count == 0:
+    if pond_count > 0:
         raise HTTPException(
             status_code=409,
-            detail=f"该育苗场下仍有塘口 {pond_count} 口，无法删除",
+            detail=f"该育苗场下仍有 {pond_count} 口塘口，无法删除；请先迁移或清空塘口",
         )
     db.delete(item)
     db.commit()
