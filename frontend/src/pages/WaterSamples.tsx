@@ -70,7 +70,8 @@ export default function WaterSamples() {
 
   const pondLabel = (id: number) => {
     const p = ponds.find((x) => x.id === id)
-    return p ? `${p.pondCode} (${p.species})` : `#${id}`
+    if (p) return `${p.pondCode} (${p.species})`
+    return `#${id}（塘口已删除）`
   }
 
   return (

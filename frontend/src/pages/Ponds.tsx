@@ -57,8 +57,14 @@ export default function Ponds() {
     }
   }
 
-  const hatcheryName = (id: number) =>
-    hatcheries.find((h) => h.id === id)?.name || `#${id}`
+  const hatcheryName = (row: Pond) => {
+    if (row.hatcheryId == null) return row.hatcheryName || '（育苗场已删除）'
+    return (
+      hatcheries.find((h) => h.id === row.hatcheryId)?.name ||
+      row.hatcheryName ||
+      `#${row.hatcheryId}`
+    )
+  }
 
   return (
     <div>
@@ -145,7 +151,7 @@ export default function Ponds() {
             {rows.map((r) => (
               <tr key={r.id}>
                 <td>{r.id}</td>
-                <td>{hatcheryName(r.hatcheryId)}</td>
+                <td>{hatcheryName(r)}</td>
                 <td>{r.pondCode}</td>
                 <td>{r.species}</td>
                 <td>{r.volumeM3}</td>

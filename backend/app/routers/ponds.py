@@ -26,8 +26,10 @@ def list_ponds(
     rows = q.order_by(Pond.id).all()
     out = []
     for p in rows:
-        # bare access — blows up when hatchery was SET NULL orphaned
-        name = p.hatchery.name
+        # hatchery may be missing for legacy orphaned ponds (SET NULL);
+        # degrade to a placeholder name instead of failing the whole list
+        hatchery = p.hatchery
+        name = hatchery.name if hatchery is not None else "（育苗场已删除）"
         out.append(
             PondOut(
                 id=p.id,
